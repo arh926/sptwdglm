@@ -22,9 +22,11 @@ dglm.autograd(
   nburn = NULL,
   report = NULL,
   thin = 1,
-  return.mcmc = T,
-  verbose = F,
-  digits = 3
+  return.mcmc = TRUE,
+  verbose = FALSE,
+  track = FALSE,
+  digits = 3,
+  reg.factor = 20
 )
 }
 \arguments{
@@ -34,10 +36,85 @@ dglm.autograd(
 
 \item{z}{covariates for the dispersion model}
 
-\item{lower.xi}{lower bound for the index parameter of the Tweedie CP-g distribution}
+\item{lower.xi}{lower bound for the index parameter, \eqn{\xi}}
 
-\item{upper.xi}{upper bound for the index parameter of the Tweedie CP-g distribution}
+\item{upper.xi}{upper bound for the index parameter, \eqn{\xi}}
 }
 \description{
-Fits a univariate Gaussian spatial regression model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
+Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
+}
+\examples{
+## Not Run
+
+set.seed(2022)
+require(tweedie)
+require(Matrix)
+# require(dglm) # for fitting traditional dglms
+# require(statmod)
+
+par(mfcol=c(1,1))
+# Generate Data
+N = 1e3
+x = z = Matrix(cbind(1, rnorm(N), rnorm(N), rnorm(N)))
+p = ncol(x)
+q = ncol(z)
+# Covariates
+beta0 = 1
+beta1 = 1.5
+beta2 = 1.1
+beta3 = 1.4
+beta.true = c(beta0, beta1, beta2, beta3)
+mu_sim = as.vector(exp(x \%*\% beta.true))
+gamma0 = 1
+gamma1 = 0.5
+gamma2 = 0.1
+gamma3 = 1.1
+gamma.true = c(gamma0, gamma1, gamma2, gamma3)
+phi_sim =  as.vector(exp(z \%*\% gamma.true))
+
+# weights = rgamma(N, shape = 1, scale = 1) # exposure
+
+xi.true = 1.5
+
+y_sim = rtweedie(N, xi = xi.true,
+ mu = mu_sim,
+  phi = phi_sim); range(y_sim)
+# y_sim = y_sim/weights; range(y_sim)
+sum(y_sim == 0)/N # proportion of zeros
+
+# Traditional DGLM
+# mdglm = try(dglm(y_sim~as.matrix(x[,-1]),
+# ~as.matrix(z[,-1]),
+# family=tweedie(link.power=0, var.power=1.5)))
+# if(!("try-error" \%in\% class(mdglm))){
+ #  mdglm.mean = mdglm$coefficients # mean model
+  # mdglm.disp = mdglm$dispersion.fit$coefficients # dispersion model
+# }
+# Bayesian DGLM
+y = y_sim
+x = x
+z = z
+# MCMC parameters
+niter = 1e4
+nburn = niter/2
+report = 1e2
+
+# Hyperparameters
+prec.beta = prec.gamma = 1e-6
+lower.xi = 1
+upper.xi = 2
+system.time(mc <- dglm.autograd(y=y,
+ x=x,
+  z=z,
+   lower.xi = lower.xi,
+    upper.xi = upper.xi,
+     niter = niter,
+      verbose=TRUE,
+       thin = 20))
+# Model summary
+cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
+# --mean model variance covariance matrix
+mc$mean.cov.model
+# --dispersion model variance covariance matrix
+mc$disp.cov.model
 }

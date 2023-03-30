@@ -1,6 +1,6 @@
-#' An MCMC sampler for fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models
+#' Spike and Slab Priors for Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models
 #'
-#' Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
+#' Performs variable selection on Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 #'
 #' @param y observed response
 #' @param x covariates for the mean model
@@ -13,107 +13,99 @@
 #' @export
 #' @examples
 #' ## Not Run
-#'
-#' set.seed(2022)
-#' require(tweedie)
-#' require(Matrix)
-#' # require(dglm) # for fitting traditional dglms
-#' # require(statmod)
-#'
-#' par(mfcol=c(1,1))
 #' # Generate Data
+#' require(tweedie)
 #' N = 1e3
-#' x = z = Matrix(cbind(1, rnorm(N), rnorm(N), rnorm(N)))
+#' x = z = cbind(1, rnorm(N), rnorm(N), rnorm(N),
+#'               rnorm(N), rnorm(N), rnorm(N))
+#' # Standardize covariates
+#' x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
+#' z[,-1] = apply(z[,-1], 2, function(s) (s - mean(s))/sd(s))
 #' p = ncol(x)
 #' q = ncol(z)
 #' # Covariates
 #' beta0 = 1
 #' beta1 = 1.5
-#' beta2 = 1.1
+#' beta2 = 0.01
 #' beta3 = 1.4
-#' beta.true = c(beta0, beta1, beta2, beta3)
-#' mu_sim = as.vector(exp(x %*% beta.true))
+#' beta4 = 1.1
+#' beta5 = 0.01
+#' beta6 = 2.5
+#' beta.true = c(beta0, beta1, beta2, beta3, beta4, beta5, beta6)
+#' mu_sim = exp(x %*% beta.true)
 #' gamma0 = 1
-#' gamma1 = 0.5
-#' gamma2 = 0.1
+#' gamma1 = 0.01
+#' gamma2 = 1.5
 #' gamma3 = 1.1
-#' gamma.true = c(gamma0, gamma1, gamma2, gamma3)
-#' phi_sim =  as.vector(exp(z %*% gamma.true))
-#'
-#' # weights = rgamma(N, shape = 1, scale = 1) # exposure
-#'
+#' gamma4 = 0.01
+#' gamma5 = -2.5
+#' gamma6 = 0.01
+#' gamma.true = c(gamma0, gamma1, gamma2, gamma3, gamma4, gamma5, gamma6)
+#' phi_sim = exp(z %*% gamma.true)
+
 #' xi.true = 1.5
-#'
-#' y_sim = rtweedie(N, xi = xi.true,
-#'  mu = mu_sim,
-#'   phi = phi_sim); range(y_sim)
-#' # y_sim = y_sim/weights; range(y_sim)
+
+#' y_sim = rtweedie(N, xi = xi.true, mu = mu_sim, phi = phi_sim)
 #' sum(y_sim == 0)/N # proportion of zeros
+#' var(y_sim)
 #'
-#' # Traditional DGLM
-#' # mdglm = try(dglm(y_sim~as.matrix(x[,-1]),
-#' # ~as.matrix(z[,-1]),
-#' # family=tweedie(link.power=0, var.power=1.5)))
-#' # if(!("try-error" %in% class(mdglm))){
-#'  #  mdglm.mean = mdglm$coefficients # mean model
-#'   # mdglm.disp = mdglm$dispersion.fit$coefficients # dispersion model
-#' # }
-#' # Bayesian DGLM
+#' # Bayesian DGLM with Spike-Slab
 #' y = y_sim
 #' x = x
 #' z = z
-#' # MCMC parameters
-#' niter = 1e4
-#' nburn = niter/2
-#' report = 1e2
-#'
+
 #' # Hyperparameters
-#' prec.beta = prec.gamma = 1e-6
 #' lower.xi = 1
 #' upper.xi = 2
-#' system.time(mc <- dglm.autograd(y=y,
-#'  x=x,
-#'   z=z,
+#'
+#' system.time(mc <- ssdglm.autograd(y = y,
+#'  x = x,
+#'   z = z,
 #'    lower.xi = lower.xi,
 #'     upper.xi = upper.xi,
-#'      niter = niter,
-#'       verbose=TRUE,
-#'        thin = 20))
+#'      verbose = TRUE,
+#'       thin = 20))
 #' # Model summary
 #' cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
 #' # --mean model variance covariance matrix
-#' mc$mean.cov.model
+#' round(mc$mean.cov.model, 2)
 #' # --dispersion model variance covariance matrix
-#' mc$disp.cov.model
+#' round(mc$disp.cov.model, 2)
 
-####################################
-#  Tweedie Compound Poisson Gamma  #
-#  Double Generalized Linear Model #
-####################################
-
-dglm.autograd <- function(y = NULL,
-                          x = NULL,
-                          z = NULL,
-                          beta.init = NULL,
-                          gamma.init = NULL,
-                          xi.init = NULL,
-                          prec.beta = NULL,
-                          prec.gamma = NULL,
-                          lower.xi = NULL,
-                          upper.xi = NULL,
-                          tau.beta = 1e-1,
-                          tau.gamma = 1e-1,
-                          tau.xi = 1e-1,
-                          niter = NULL,
-                          nburn = NULL,
-                          report = NULL,
-                          thin = 1,
-                          return.mcmc = TRUE,
-                          verbose = FALSE,
-                          track = FALSE,
-                          digits = 3,
-                          reg.factor = 2e1){
-
+###############################################################
+# Bayesian Variable Selection in DGLMs: Spike and Slab Priors #
+###############################################################
+ssdglm.autograd <- function(y = NULL,
+                            x = NULL,
+                            z = NULL,
+                            beta.init = NULL,
+                            gamma.init = NULL,
+                            xi.init = NULL,
+                            alpha.beta.init = NULL,
+                            alpha.gamma.init = NULL,
+                            zeta.beta.init = NULL,
+                            zeta.gamma.init = NULL,
+                            sigma2.beta.init = NULL,
+                            sigma2.gamma.init = NULL,
+                            shape.sigma2.beta = NULL,
+                            shape.sigma2.gamma = NULL,
+                            rate.sigma2.beta = NULL,
+                            rate.sigma2.gamma = NULL,
+                            lower.xi = NULL,
+                            upper.xi = NULL,
+                            nu0 = 5e-4,
+                            tau.beta = 1e-1,
+                            tau.gamma = 1e-1,
+                            tau.xi = 1e-1,
+                            niter = NULL,
+                            nburn = NULL,
+                            report = NULL,
+                            thin = 1,
+                            return.mcmc = TRUE,
+                            verbose = FALSE,
+                            track = FALSE,
+                            digits = 3,
+                            reg.factor = 20){
   if(is.null(y)) stop(" Error: response missing! ")
   if(is.null(x) | is.null(z)) stop(" Error: either mean (x) or dispersion (z) (or both) design matrices missing! ")
   if(is.null(lower.xi) | is.null(upper.xi)) stop(" Error: specify prior for index parameter in Tweedie! ")
@@ -135,67 +127,77 @@ dglm.autograd <- function(y = NULL,
   p = ncol(x)
   q = ncol(z)
 
-  if(is.null(prec.beta)) prec.beta = 1e-6
-  if(is.null(prec.gamma)) prec.gamma = 1e-6
-
   # acceptance
   accept.beta = accept.gamma = accept.xi = 0
   accept.mat = c()
 
   # storage
-  res_beta = matrix(0, nrow = niter, ncol = p)
-  res_gamma = matrix(0, nrow = niter, ncol = q)
-  res_xi = rep(0, niter)
+  res_beta = res_zeta.beta = res_sigma2.beta = matrix(0, nrow = niter, ncol = p)
+  res_gamma = res_zeta.gamma = res_sigma2.gamma = matrix(0, nrow = niter, ncol = q)
+  res_xi = res_alpha.beta = res_alpha.gamma = rep(0, niter)
 
+  # default hyperparameters
+  shape.sigma2.beta = ifelse(is.null(shape.sigma2.beta), 2, shape.sigma2.beta)
+  shape.sigma2.gamma = ifelse(is.null(shape.sigma2.gamma), 2, shape.sigma2.gamma)
+  rate.sigma2.beta = ifelse(is.null(rate.sigma2.beta), 1, rate.sigma2.beta)
+  rate.sigma2.gamma = ifelse(is.null(rate.sigma2.gamma), 1, rate.sigma2.gamma)
+
+  # default initialization
   if(is.null(beta.init)) beta = rep(0, p) else beta = beta.init
   if(is.null(gamma.init)) gamma = rep(0, q) else gamma = gamma.init
   xi = ifelse(is.null(xi.init), lower.xi + (upper.xi - lower.xi)/2, xi.init)
+  alpha.beta = ifelse(is.null(alpha.beta.init), 0.5, alpha.beta.init)
+  alpha.gamma = ifelse(is.null(alpha.gamma.init), 0.5, alpha.gamma.init)
+  if(is.null(zeta.beta.init)) zeta.beta = rep(1, p) else zeta.beta = zeta.beta.init
+  if(is.null(zeta.gamma.init)) zeta.gamma = rep(1, q) else zeta.gamma = zeta.gamma.init
+  if(is.null(sigma2.beta.init)) sigma2.beta = rep(1, p) else sigma2.beta = sigma2.beta.init
+  if(is.null(sigma2.gamma.init)) sigma2.gamma = rep(1, q) else sigma2.gamma = sigma2.gamma.init
 
   # target density
   trgt_dfn = rep(0, niter)
 
   ztz = crossprod(z, z)
-  A.gamma.mat = ztz + (reg.factor + prec.gamma) * diag(q)
-  A.gamma.chol = chol(A.gamma.mat)
-  A.gamma = chol2inv(A.gamma.chol)
-
   xb = as.vector(x %*% beta)
   zg = as.vector(z %*% gamma)
+
+  A.gamma.mat = ztz + (reg.factor + 1) * diag(q)
+  A.gamma.chol = chol(A.gamma.mat)
+  A.gamma = chol2inv(A.gamma.chol)
 
   for(i in 1:niter){
     ###############
     # update beta #
     ###############
+
     t1 = exp((2 - xi) * xb - zg)
     t2 = y * exp((1 - xi) * xb - zg)
 
-    A.beta.mat = forceSymmetric(crossprod(x * as.vector(t1), x) + (reg.factor + prec.beta) * diag(p))
-    A.beta.chol =  chol(A.beta.mat)
+    A.beta.mat = crossprod(x * as.vector(t1), x) + reg.factor * diag(p) + diag(1/(sigma2.beta * zeta.beta))
+    A.beta.chol = chol(A.beta.mat)
     A.beta = chol2inv(A.beta.chol)
-    nabla.beta = - prec.beta * beta - crossprod(x, (t1 - t2))
+    nabla.beta = - beta/(sigma2.beta * zeta.beta) - crossprod(x, (t1 - t2))
 
     beta.draw =  beta + tau.beta * A.beta %*% nabla.beta/2 + chol(tau.beta * A.beta) %*% rnorm(p)
     xb.draw = as.vector(x %*% beta.draw)
 
     t1.draw = exp((2 - xi) * xb.draw - zg)
     t2.draw = y * exp((1 - xi) * xb.draw - zg)
-    nabla.beta.draw = - prec.beta * beta.draw - crossprod(x, (t1.draw - t2.draw))
+    nabla.beta.draw = - beta.draw/(sigma2.beta * zeta.beta) - crossprod(x, (t1.draw - t2.draw))
 
     ra1.tmp1 = dtweedie(y = y, xi = xi, mu = exp(xb.draw), phi = exp(zg))
     ra1.tmp1[ra1.tmp1 == 0] = 1e-300
     ra1.tmp2 = dtweedie(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
     ra1.tmp2[ra1.tmp2 == 0] = 1e-300
     ra1 = sum(log(ra1.tmp1/ra1.tmp2))
-    ra2 = 0.5 * prec.beta * (sum(beta.draw^2) - sum(beta^2))
+    ra2 = 0.5 * (sum(beta.draw^2/(sigma2.beta * zeta.beta)) - sum(beta^2/(sigma2.beta * zeta.beta)))
     ra = ra1 - ra2
-
     rb1.1 = beta.draw - beta - tau.beta * A.beta %*% nabla.beta/2
     rb1 = -1/(2 * tau.beta) * crossprod(t(crossprod(rb1.1, A.beta.mat)), (rb1.1))
     rb2.1 = beta - beta.draw - tau.beta * A.beta %*% nabla.beta.draw/2
     rb2 = -1/(2 * tau.beta) * crossprod(t(crossprod(rb2.1, A.beta.mat)), (rb2.1))
     rb = rb2 - rb1
 
-    accept.prob = min(as.numeric(ra + rb), 0)
+    accept.prob = min(ra + rb, 0)
     if(log(runif(1)) < accept.prob){
       res_beta[i,] = beta = as.vector(beta.draw)
       xb = xb.draw
@@ -203,25 +205,45 @@ dglm.autograd <- function(y = NULL,
     }else{
       res_beta[i,] = beta
     }
+    ##############################
+    # update spike-slab for beta #
+    ##############################
+    # update zeta.beta
+    tmp = exp(- 0.5 * beta^2/sigma2.beta)
+    t1 = (1 - alpha.beta) * 1/sqrt(nu0) * tmp^(1/nu0)
+    t2 = alpha.beta * tmp
+    zeta.pr = t2/(t1 + t2)
+    zeta.pr[is.na(zeta.pr)] = 0.5
+    res_zeta.beta[i,] = zeta.beta = rbinom(p, 1, prob = zeta.pr)
+    zeta.beta[zeta.beta == 0] = nu0
+
+    # update sigma2.beta
+    res_sigma2.beta[i,] = sigma2.beta = 1/rgamma(p,
+                                                 shape = shape.sigma2.beta + 0.5,
+                                                 rate = rate.sigma2.beta + 0.5 * beta^2/zeta.beta)
+
+    # update alpha.beta
+    res_alpha.beta[i] = alpha.beta = rbeta(1, 1 + sum(zeta.beta == 1), 1 + sum(zeta.beta == nu0))
 
     ################
     # update gamma #
     ################
     dldphi = delphi(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
-    nabla.gamma = - prec.gamma * gamma + crossprod(z, exp(zg) * dldphi)
+    nabla.gamma = - gamma/(sigma2.gamma * zeta.gamma) + crossprod(z, exp(zg) * dldphi)
 
     gamma.draw =  gamma + tau.gamma * A.gamma %*% nabla.gamma/2 + chol(tau.gamma * A.gamma) %*% rnorm(q)
     zg.draw = as.vector(z %*% gamma.draw)
 
     dldphi.draw = delphi(y = y, xi = xi, mu = exp(xb), phi = exp(zg.draw))
-    nabla.gamma.draw = - prec.gamma * gamma.draw +  crossprod(z, exp(zg) * dldphi.draw)
+
+    nabla.gamma.draw = - gamma.draw/(sigma2.gamma * zeta.gamma) +  crossprod(z, exp(zg) * dldphi.draw)
 
     ra1.tmp1 = dtweedie(y = y, xi = xi, mu = exp(xb), phi = exp(zg.draw))
     ra1.tmp1[ra1.tmp1 == 0] = 1e-300
     ra1.tmp2 = dtweedie(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
     ra1.tmp2[ra1.tmp2 == 0] = 1e-300
     ra1 = sum(log(ra1.tmp1/ra1.tmp2))
-    ra2 = 0.5 * prec.gamma * (sum(gamma.draw^2) - sum(gamma^2))
+    ra2 = 0.5 * (sum(gamma.draw^2/(sigma2.gamma * zeta.gamma)) - sum(gamma^2/(sigma2.gamma * zeta.gamma)))
     ra = ra1 - ra2
     rb1.1 = gamma.draw - gamma - tau.gamma * A.gamma %*% nabla.gamma/2
     rb1 = -1/(2 * tau.gamma) * crossprod(t(crossprod(rb1.1, A.gamma.mat)), (rb1.1))
@@ -229,7 +251,7 @@ dglm.autograd <- function(y = NULL,
     rb2 = -1/(2 * tau.gamma) * crossprod(t(crossprod(rb2.1, A.gamma.mat)), (rb2.1))
     rb = rb2 - rb1
 
-    accept.prob = min(as.numeric(ra + rb), 0)
+    accept.prob = min(ra + rb, 0)
     if(log(runif(1)) < accept.prob){
       res_gamma[i,] = gamma = as.vector(gamma.draw)
       zg = zg.draw
@@ -237,6 +259,27 @@ dglm.autograd <- function(y = NULL,
     }else{
       res_gamma[i,] = gamma
     }
+
+    ###############################
+    # update spike-slab for gamma #
+    ###############################
+    # update zeta.gamma
+    tmp = exp(- 0.5 * gamma^2/sigma2.gamma)
+    t1 = (1 - alpha.gamma) * 1/sqrt(nu0) * tmp^(1/nu0)
+    t2 = alpha.gamma * tmp
+    zeta.pr = t2/(t1 + t2)
+    zeta.pr[is.na(zeta.pr)] = 0.5
+    res_zeta.gamma[i,] = zeta.gamma = rbinom(q, 1, prob = zeta.pr)
+    zeta.gamma[zeta.gamma == 0] = nu0
+
+    # update sigma2.gamma
+    res_sigma2.gamma[i,] = sigma2.gamma = 1/rgamma(q,
+                                                   shape = shape.sigma2.gamma + 0.5,
+                                                   rate = rate.sigma2.gamma + 0.5 * gamma^2/zeta.gamma)
+
+    # update alpha.gamma
+    res_alpha.gamma[i] = alpha.gamma = rbeta(1, 1 + sum(zeta.gamma == 1), 1 + sum(zeta.gamma == nu0))
+
     #############
     # update xi #
     #############
@@ -263,8 +306,8 @@ dglm.autograd <- function(y = NULL,
     lik.val = dtweedie(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
     lik.val[lik.val == 0] = 1e-300
     trgt_dfn[i] = sum(log(lik.val)) +
-      dmvnorm(as.vector(beta), rep(0, p), diag(p)/prec.beta, log = TRUE) +
-      dmvnorm(as.vector(gamma), rep(0, q), diag(q)/prec.beta, log = TRUE) + 0
+      dmvnorm(as.vector(beta), rep(0, p), diag((sigma2.beta * zeta.beta)), log = TRUE) +
+      dmvnorm(as.vector(gamma), rep(0, q), diag((sigma2.gamma * zeta.gamma)), log = TRUE) + 0
     if(track){
       if(i %% report == 0) cat(round(trgt_dfn[i], 2), "\n") else cat(round(trgt_dfn[i], 2), "\t")
     }
@@ -315,38 +358,45 @@ dglm.autograd <- function(y = NULL,
       else if(accept.xi < 0.25) tau.xi = tau.xi * accept.xi/0.25
 
       accept.beta = accept.gamma = accept.xi = 0
-      gc()
     }
   }
   #############
   # Inference #
   #############
   sample.win = seq((nburn + 1), niter, by = thin)
-  beta.est = cbind.data.frame(median = round(apply(res_beta[sample.win,], 2, median), digits = digits),
+  beta.est = cbind.data.frame(MAP = round(apply(res_beta[sample.win,], 2, function(s){ den = density(s); ind = which.max(den$y); den$x[ind]}), digits = digits),
+                              median = round(apply(res_beta[sample.win,], 2, median), digits = digits),
                               mean = round(apply(res_beta[sample.win,], 2, mean), digits = digits),
                               sd = round(apply(res_beta[sample.win,], 2, sd), digits = digits),
                               round(HPDinterval(as.mcmc(res_beta[sample.win,])), digits = digits))
-  gamma.est = cbind.data.frame(median = round(apply(res_gamma[sample.win,], 2, median), digits = digits),
+  gamma.est = cbind.data.frame(MAP = round(apply(res_gamma[sample.win,], 2, function(s){ den = density(s); ind = which.max(den$y); den$x[ind]}), digits = digits),
+                               median = round(apply(res_gamma[sample.win,], 2, median), digits = digits),
                                mean = round(apply(res_gamma[sample.win,], 2, mean), digits = digits),
                                sd = round(apply(res_gamma[sample.win,], 2, sd), digits = digits),
                                round(HPDinterval(as.mcmc(res_gamma[sample.win,])), digits = digits))
-  xi.est = cbind.data.frame(median = round(median(res_xi[sample.win]), digits = digits),
+  xi.est = cbind.data.frame(MAP = round(apply(matrix(res_xi[sample.win], ncol = 1), 2, function(s){ den = density(s); ind = which.max(den$y); den$x[ind]}), digits = digits),
+                            median = round(median(res_xi[sample.win]), digits = digits),
                             mean = round(mean(res_xi[sample.win]), digits = digits),
                             sd = round(sd(res_xi[sample.win]), digits = digits),
                             round(HPDinterval(as.mcmc(res_xi[sample.win])), digits = digits))
   model.summary = rbind.data.frame(beta.est, gamma.est, xi.est)
   model.summary$sig = apply(model.summary, 1, function(x){
-    if(x[4] > 0 | x[5] < 0) return("*")
-    if(x[4] < 0 & x[5] > 0) return("")
+    if(x[5] > 0 | x[6] < 0) return("*")
+    else if(x[5] < 0 & x[6] > 0) return("")
+    else if(x[5] == 0 | x[6] == 0) return("")
   })
   rownames(model.summary) = c(paste("beta", 0 : (p - 1), sep=""),
                               paste("gamma", 0 : (q - 1), sep=""),
                               "xi")
   if(return.mcmc){
-    colnames(A.beta.mat) = rownames(A.beta.mat) = colnames(res_beta) = paste("beta", 0 : (p - 1), sep="")
-    colnames(A.gamma.mat) = rownames(A.gamma.mat) = colnames(res_gamma) = paste("gamma", 0 : (q - 1), sep="")
+    colnames(A.beta.mat) = rownames(A.beta.mat) = colnames(res_beta) = colnames(res_zeta.beta) = paste("beta", 0 : (p - 1), sep="")
+    colnames(A.gamma.mat) = rownames(A.gamma.mat) = colnames(res_gamma) = colnames(res_zeta.gamma) = paste("gamma", 0 : (q - 1), sep="")
     res_xi = matrix(res_xi, ncol = 1)
     colnames(res_xi) = "xi"
+    res_alpha.beta = matrix(res_alpha.beta, ncol = 1)
+    colnames(res_alpha.beta) = "alpha.beta"
+    res_alpha.gamma = matrix(res_alpha.gamma, ncol = 1)
+    colnames(res_alpha.gamma) = "alpha.gamma"
     return(list(model = model.summary,
                 mean.cov.model = A.beta.mat,
                 disp.cov.model = A.gamma.mat,
@@ -356,7 +406,13 @@ dglm.autograd <- function(y = NULL,
                 report = report,
                 beta.mcmc = as.mcmc(res_beta[sample.win,]),
                 gamma.mcmc = as.mcmc(res_gamma[sample.win,]),
-                xi.mcmc = as.mcmc(res_xi[sample.win,"xi"])))
+                xi.mcmc = as.mcmc(res_xi[sample.win,"xi"]),
+                zeta.beta.mcmc = as.mcmc(res_zeta.beta[sample.win,]),
+                zeta.gamma.mcmc = as.mcmc(res_zeta.gamma[sample.win,]),
+                sigma2.beta.mcmc = as.mcmc(res_sigma2.beta[sample.win,]),
+                sigma2.gamma.mcmc = as.mcmc(res_sigma2.gamma[sample.win,]),
+                alpha.beta.mcmc = as.mcmc(res_alpha.beta[sample.win,"alpha.beta"]),
+                alpha.gamma.mcmc = as.mcmc(res_alpha.gamma[sample.win,"alpha.gamma"])))
   }else{
     colnames(A.beta.mat) = rownames(A.beta.mat) =  paste("beta", 0 : (p - 1), sep="")
     colnames(A.gamma.mat) = rownames(A.gamma.mat) = paste("gamma", 0 : (q - 1), sep="")
@@ -366,3 +422,4 @@ dglm.autograd <- function(y = NULL,
                 target_fn = as.ts(trgt_dfn)))
   }
 }
+
