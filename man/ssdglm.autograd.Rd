@@ -59,6 +59,7 @@ require(tweedie)
 N = 1e3
 x = z = cbind(1, rnorm(N), rnorm(N), rnorm(N),
               rnorm(N), rnorm(N), rnorm(N))
+# Standardize covariates
 x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
 z[,-1] = apply(z[,-1], 2, function(s) (s - mean(s))/sd(s))
 p = ncol(x)

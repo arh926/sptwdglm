@@ -1,4 +1,4 @@
-#' An MCMC sampler for fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models
+#' Fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models
 #'
 #' Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 #'

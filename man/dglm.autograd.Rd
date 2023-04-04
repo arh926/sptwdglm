@@ -2,7 +2,7 @@
 % Please edit documentation in R/dglm.autograd.R
 \name{dglm.autograd}
 \alias{dglm.autograd}
-\title{An MCMC sampler for fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models}
+\title{Fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models}
 \usage{
 dglm.autograd(
   y = NULL,
