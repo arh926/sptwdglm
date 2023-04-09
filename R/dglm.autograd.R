@@ -12,9 +12,7 @@
 #' @importFrom mvtnorm dmvnorm
 #' @export
 #' @examples
-#' ## Not Run
-#'
-#' set.seed(2022)
+#' \dontrun{
 #' require(tweedie)
 #' require(Matrix)
 #' # require(dglm) # for fitting traditional dglms
@@ -85,6 +83,7 @@
 #' mc$mean.cov.model
 #' # --dispersion model variance covariance matrix
 #' mc$disp.cov.model
+#' }
 
 ####################################
 #  Tweedie Compound Poisson Gamma  #

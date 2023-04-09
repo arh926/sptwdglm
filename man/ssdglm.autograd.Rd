@@ -53,7 +53,7 @@ ssdglm.autograd(
 Performs variable selection on Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 }
 \examples{
-## Not Run
+\dontrun{
 # Generate Data
 require(tweedie)
 N = 1e3
@@ -109,4 +109,5 @@ cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
 round(mc$mean.cov.model, 2)
 # --dispersion model variance covariance matrix
 round(mc$disp.cov.model, 2)
+}
 }

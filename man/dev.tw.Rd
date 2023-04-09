@@ -4,7 +4,7 @@
 \alias{dev.tw}
 \title{Deviance function for Tweedie Compound Poisson-gamma distribution}
 \usage{
-dev.tw(y = NULL, wts = NULL, mu = NULL, xi = NULL)
+dev.tw(y = NULL, wts = NULL, mu = NULL, phi = NULL, xi = NULL)
 }
 \arguments{
 \item{y}{observed response}
@@ -12,6 +12,8 @@ dev.tw(y = NULL, wts = NULL, mu = NULL, xi = NULL)
 \item{wts}{optional weights (or scales) for y}
 
 \item{mu}{mean vector}
+
+\item{phi}{dispersion vector}
 
 \item{xi}{index parameter}
 }

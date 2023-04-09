@@ -44,9 +44,7 @@ dglm.autograd(
 Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 }
 \examples{
-## Not Run
-
-set.seed(2022)
+\dontrun{
 require(tweedie)
 require(Matrix)
 # require(dglm) # for fitting traditional dglms
@@ -117,4 +115,5 @@ cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
 mc$mean.cov.model
 # --dispersion model variance covariance matrix
 mc$disp.cov.model
+}
 }

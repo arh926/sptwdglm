@@ -12,7 +12,7 @@
 #' @importFrom mvtnorm dmvnorm
 #' @export
 #' @examples
-#' ## Not Run
+#' \dontrun{
 #' # Generate Data
 #' require(tweedie)
 #' N = 1e3
@@ -71,6 +71,7 @@
 #' round(mc$mean.cov.model, 2)
 #' # --dispersion model variance covariance matrix
 #' round(mc$disp.cov.model, 2)
+#' }
 
 ###############################################################
 # Bayesian Variable Selection in DGLMs: Spike and Slab Priors #
