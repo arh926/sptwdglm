@@ -90,6 +90,9 @@
 #' # latent effect model inference
 #' cbind(mc$model.latent, true = c(sigma2.true,phis.true,round(w.true,3)))
 #' w.est = mc$model.latent[-c(1:2), "median"]
+#'
+#' # Check convergence
+#' plot_mcmc(samples = mc$xi.mcmc, true = xi.true, cnames = "xi")
 #' }
 
 

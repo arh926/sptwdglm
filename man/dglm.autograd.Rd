@@ -115,5 +115,8 @@ cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
 mc$mean.cov.model
 # --dispersion model variance covariance matrix
 mc$disp.cov.model
+
+# Check convergence
+plot_mcmc(mc$xi.mcmc, true =  xi.true, cnames= "xi")
 }
 }

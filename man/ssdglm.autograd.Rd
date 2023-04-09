@@ -109,5 +109,8 @@ cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
 round(mc$mean.cov.model, 2)
 # --dispersion model variance covariance matrix
 round(mc$disp.cov.model, 2)
+
+# Check convergence
+plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
 }
 }
