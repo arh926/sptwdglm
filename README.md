@@ -5,7 +5,7 @@
 ![Maintainer](https://img.shields.io/badge/maintainer-arh926-blue)
 <!-- badges: end -->
 
-`sptdwglm` contains MCMC algorithms for fitting the following models:
+`sptwdglm` contains MCMC algorithms for fitting the following models:
 
 Function   | Models
 :---- | :-------------
