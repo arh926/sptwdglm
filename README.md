@@ -11,7 +11,7 @@ ID  | Models
 1    | Double Generalzied Linear Model (DGLM) 
 2    | Spike and Slab Priors for DGLMs 
 3    | Spatial DGLMs
-4    | Spike and Slab for Spatial DGLMs
+4    | Spike and Slab Priors for Spatial DGLMs
 
 ## Installation
 
