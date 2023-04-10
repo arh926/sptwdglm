@@ -4,12 +4,19 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-`sptdwglm` contains MCMC algorithms for fitting teh following models 
+`sptdwglm` contains MCMC algorithms for fitting teh following models:
 
-(a) Double Generalzied Linear Model (DGLM) 
-(b) Spike and Slab Priors for DGLMs 
-(c) Spatial DGLMs and 
-(d) Spike and Slab for Spatial DGLMs
+    | Second Header
+----| -------------
+1   | Double Generalzied Linear Model (DGLM) 
+2   | Spike and Slab Priors for DGLMs 
+3   | Spatial DGLMs
+4   | Spike and Slab for Spatial DGLMs
+
+(a) 
+(b) 
+(c) 
+(d)
 
 ## Installation
 
