@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-`sptdwglm` contains MCMC algorithms for fitting teh following models:
+`sptdwglm` contains MCMC algorithms for fitting the following models:
 
 ID  | Models
 ---- | -------------
