@@ -107,6 +107,7 @@ system.time(mc_ss <- spssdglm.autograd(coords = coords, y = y, x = x, z = z,
 # Check for convergence
 plot_mcmc(samples = mc_ss$xi.mcmc, true = 1.5, col = "blue", cnames = "xi")
 
+s# FDR for coefficients
 rbeta.ssdglm = FDR(mc$beta.mcmc)
 rgamma.ssdglm = FDR(mc$gamma.mcmc)
 ```
