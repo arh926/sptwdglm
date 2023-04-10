@@ -2,11 +2,12 @@
 # sptwdglm: An R-package for performing Bayesian Variable selection using Spike and Slab priors for Double Generalized Tweedie Spatial Process Models
 
 <!-- badges: start -->
+![Maintainer](https://img.shields.io/badge/maintainer-arh926-blue)
 <!-- badges: end -->
 
 `sptdwglm` contains MCMC algorithms for fitting the following models:
 
-ID  | Models
+ID   | Models
 ---- | -------------
 1    | Double Generalzied Linear Model (DGLM) 
 2    | Spike and Slab Priors for DGLMs 
