@@ -1,10 +1,10 @@
 
-# sptwdglm
+# sptwdglm: An R-package for performing Bayesian Variable selection using Spike and Slab priors for Double Generalized Tweedie Spatial Process Models.
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of sptwdglm is to ...
+`sptdwglm`
 
 ## Installation
 
