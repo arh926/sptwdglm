@@ -4,7 +4,12 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-`sptdwglm` contains MCMC algorithms for fitting teh following models (a) Double Generalzied Linear Model (DGLM) (b) Spike and Slab Priors for DGLMs (c) Spatial DGLMs and (d) Spike and Slab for Spatial DGLMs
+`sptdwglm` contains MCMC algorithms for fitting teh following models 
+
+(a) Double Generalzied Linear Model (DGLM) 
+(b) Spike and Slab Priors for DGLMs 
+(c) Spatial DGLMs and 
+(d) Spike and Slab for Spatial DGLMs
 
 ## Installation
 
@@ -18,7 +23,7 @@ devtools::install_github("arh926/sptwdglm")
 
 ## Example
 
-There are examples contained within every function listed.
+There are examples contained within every function listed. I list the particular example pertaining to variable selection in DGLM
 
 ``` r
 require(sptwdglm)
