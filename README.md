@@ -6,7 +6,7 @@
 
 `sptdwglm` contains MCMC algorithms for fitting teh following models:
 
-ID  | Second Header
+ID  | Models
 ---- | -------------
 1    | Double Generalzied Linear Model (DGLM) 
 2    | Spike and Slab Priors for DGLMs 
