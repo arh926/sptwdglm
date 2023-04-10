@@ -3,10 +3,7 @@
 #' @param chain MCMC chain for beta or gamma in DGLM
 #' @param thres threshold value
 #' @param FDRc percent at which FDR is computed
-#' @keywords
-#' @import
-#' @importFrom
-#' @export
+#' @keywords FDR
 #' @examples
 #' \dontrun{
 #' rbeta.ssdglm = FDR(mc$beta.mcmc)

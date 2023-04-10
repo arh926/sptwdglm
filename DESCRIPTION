@@ -11,8 +11,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     coda,
-    dglm,
     Matrix,
     mvtnorm,
-    sp,
     tweedie
