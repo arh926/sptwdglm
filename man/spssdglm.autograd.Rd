@@ -43,6 +43,7 @@ spssdglm.autograd(
   thin = 1,
   return.mcmc = TRUE,
   verbose = FALSE,
+  track = FALSE,
   digits = 3,
   reg.factor = 0,
   reg.factor.sp = 0

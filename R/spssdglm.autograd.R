@@ -132,6 +132,7 @@ spssdglm.autograd <- function(coords = NULL,
                               thin = 1,
                               return.mcmc = TRUE,
                               verbose = FALSE,
+                              track = FALSE,
                               digits = 3,
                               reg.factor = 0,
                               reg.factor.sp = 0){
@@ -504,7 +505,9 @@ spssdglm.autograd <- function(coords = NULL,
       mvtnorm::dmvnorm(as.vector(w), rep(0, L), sigma2 * R, log = T) + 
       mvtnorm::dmvnorm(as.vector(gamma), rep(0, q), diag((sigma2.gamma * zeta.gamma)), log = T) + 
       dgamma(1/sigma2, shape = shape.sigma2, scale = scale.sigma2) + 0 + 0
-    if(i %% report == 0) cat(round(trgt_dfn[i], 2), "\n") else cat(round(trgt_dfn[i], 2), "\t")
+    if(track){
+      if(i %% report == 0) cat(round(trgt_dfn[i], 2), "\n") else cat(round(trgt_dfn[i], 2), "\t")
+    }
     #############################
     # proposal variance scaling #
     #############################
@@ -524,15 +527,19 @@ spssdglm.autograd <- function(coords = NULL,
               "Xi::", round(median(res_xi[nburn:i]), digits = (digits - 1)), ", tuning.xi = ", round(tau.xi, 2),"\n",
               "=============================================","\n")
         }else{
-          # cat("Iteration::", i, "Acceptance:", accept.p, "\n")
-          cat("Iteration::", i, "Acceptance:", accept.p,"\n",
-              "=============================================","\n",
-              "Beta::", round(apply(res_beta[(i-report+1):i,], 2, median), digits = (digits - 1)), ", tuning.beta = ", round(tau.beta, 2),"\n",
-              "Gamma::", round(apply(res_gamma[(i-report+1):i,], 2, median), digits = (digits - 1)), ", tuning.gamma = ", round(tau.gamma, 2),"\n",
-              "Sigma::", round(median(res_sigma2[(i-report+1):i]), digits = (digits - 1)), "\n",
-              "Phis::", round(median(res_phis[(i-report+1):i]), digits = (digits - 1)), ", tuning.phis = ", round(tau.phis, 2),"\n",
-              "Xi::", round(median(res_xi[(i-report+1):i]), digits = (digits - 1)), ", tuning.xi = ", round(tau.xi, 2),"\n",
-              "=============================================","\n")
+          if(track){
+            # cat("Iteration::", i, "Acceptance:", accept.p, "\n")
+            cat("Iteration::", i, "Acceptance:", accept.p,"\n",
+                "=============================================","\n",
+                "Beta::", round(apply(res_beta[(i-report+1):i,], 2, median), digits = (digits - 1)), ", tuning.beta = ", round(tau.beta, 2),"\n",
+                "Gamma::", round(apply(res_gamma[(i-report+1):i,], 2, median), digits = (digits - 1)), ", tuning.gamma = ", round(tau.gamma, 2),"\n",
+                "Sigma::", round(median(res_sigma2[(i-report+1):i]), digits = (digits - 1)), "\n",
+                "Phis::", round(median(res_phis[(i-report+1):i]), digits = (digits - 1)), ", tuning.phis = ", round(tau.phis, 2),"\n",
+                "Xi::", round(median(res_xi[(i-report+1):i]), digits = (digits - 1)), ", tuning.xi = ", round(tau.xi, 2),"\n",
+                "=============================================","\n")
+          }else{
+            cat("Iteration::", i, "Acceptance:", accept.p, "\n")  
+          }
         }
       }
       
