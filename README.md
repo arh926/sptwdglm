@@ -5,14 +5,14 @@
 ![Maintainer](https://img.shields.io/badge/maintainer-arh926-blue)
 <!-- badges: end -->
 
-`sptdwglm` contains MCMC algorithms for fitting the following models:
+`sptwdglm` contains MCMC algorithms for fitting the following models:
 
-ID   | Models
----- | -------------
-1    | Double Generalzied Linear Model (DGLM) 
-2    | Spike and Slab Priors for DGLMs 
-3    | Spatial DGLMs
-4    | Spike and Slab Priors for Spatial DGLMs
+Function   | Models
+:---- | :-------------
+`dglm.autograd.R`   | Double Generalzied Linear Model (DGLM) 
+`ssdglm.autograd.R`  | Spike and Slab Priors for DGLMs 
+`spdglm.autograd.R`    | Spatial DGLMs
+`spssdglm.autograd.R`    | Spike and Slab Priors for Spatial DGLMs
 
 ## Installation
 

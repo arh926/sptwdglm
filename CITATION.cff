@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Halder"
+  given-names: "Aritra"
+  orcid: "https://orcid.org/0000-0002-5139-3620"
+title: "sptwdglm"
+version: 1.0.0
+doi:
+date-released: 2023-04-10
+url: "https://github.com/arh926/sptwdglm"
