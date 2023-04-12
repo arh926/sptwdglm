@@ -32,7 +32,7 @@ spssdglm.autograd(
   scale.sigma2 = NULL,
   lower.phis = NULL,
   upper.phis = NULL,
-  nu0 = 5e-04,
+  nu0 = 1e-04,
   tau.beta = 0.1,
   tau.gamma = 0.1,
   tau.xi = 0.1,
@@ -97,20 +97,20 @@ q = ncol(z)
 # covariates
 beta0 = 1
 beta1 = 1.5
-beta2 = 0.01
+beta2 = 1e-4
 beta3 = 1.4
 beta4 = 1.1
-beta5 = 0.01
+beta5 = 1e-4
 beta6 = 2.5
 beta.true = c(beta0, beta1, beta2, beta3, beta4, beta5, beta6)
 mu_sim.sp = exp(x \%*\% beta.true + w.true[index])
 gamma0 = 1
-gamma1 = 0.01
+gamma1 = 1e-4
 gamma2 = 1.5
 gamma3 = 1.1
-gamma4 = 0.01
+gamma4 = 1e-4
 gamma5 = -2.5
-gamma6 = 0.01
+gamma6 = 1e-4
 gamma.true = c(gamma0, gamma1, gamma2, gamma3, gamma4, gamma5, gamma6)
 phi_sim = exp(z \%*\% gamma.true)
 
@@ -125,16 +125,15 @@ y = y_sim
 x = x
 z = z
 # mcmc parameters
-niter = 1e4
+niter = 3e4
 nburn = niter/2
 report = 1e2
 
 # hyperparameters
 lower.xi = 1
 upper.xi = 2
-
 system.time(mc_ss <- spssdglm.autograd(coords = coords, y = y, x = x, z = z,
-                                    niter = niter, nburn= nburn, report = report, thin = 20,
+                                    niter = niter, nburn= nburn, report = report, thin = 50,
                                     index = index, lower.xi = lower.xi, upper.xi = upper.xi,
                                     verbose = TRUE))
 # Check for convergence

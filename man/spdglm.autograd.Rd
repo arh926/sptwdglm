@@ -61,7 +61,6 @@ spdglm.autograd(
 require(tweedie)
 require(mvtnorm)
 require(coda)
-require(MASS)
 
 # Generate Data
 N = 1e4
@@ -73,10 +72,10 @@ par(mfcol=c(1,1))
 sigma2.true = 1.5
 phis.true = 3
 Delta = as.matrix(dist(coords))
-Sigma = sigma2.true*exp(-phis.true * Delta)
-w.true = mvrnorm(1, rep(0,L), Sigma)
+Sigma = sigma2.true*exp(-phis.true*Delta)
+w.true = MASS::mvrnorm(1, rep(0,L), Sigma)
 
-if(N > L) index = sample(1:L, N, replace = TRUE) else if(N == L) index = sample(1:L, N, replace = FALSE)
+if(N > L) index = sample(1:L, N, replace = T) else if(N == L) index = sample(1:L, N, replace = F)
 # Design matrices
 z = x = cbind(1, rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N))
 x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
@@ -84,7 +83,6 @@ z[,-1] = apply(z[,-1], 2, function(s) (s - mean(s))/sd(s))
 
 p = ncol(x)
 q = ncol(z)
-
 # Covariates
 beta0 = 0.5
 beta1 = 1.5
@@ -128,14 +126,8 @@ upper.xi = 2
 system.time(mc <- spdglm.autograd(coords = coords, y = y, x = x, z = z,
                                   niter = niter, nburn = nburn, report = report, thin = 20,
                                   index = index, lower.xi = lower.xi, upper.xi = upper.xi,
-                                  verbose = TRUE))
-# fixed effect model inference
-cbind(mc$model.fixed, true=round(c(beta.true,gamma.true,xi.true),3))
-# latent effect model inference
-cbind(mc$model.latent, true = c(sigma2.true,phis.true,round(w.true,3)))
-w.est = mc$model.latent[-c(1:2), "median"]
-
-# Check convergence
-plot_mcmc(samples = mc$xi.mcmc, true = xi.true, cnames = "xi")
+                                  verbose = T))
+# Checks for convergence
+plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
 }
 }

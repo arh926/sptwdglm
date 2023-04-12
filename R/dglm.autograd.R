@@ -1,4 +1,4 @@
-#' Fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models
+#' Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models
 #'
 #' Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 #'
@@ -13,6 +13,7 @@
 #' @export
 #' @examples
 #' \dontrun{
+#' set.seed(2022)
 #' require(tweedie)
 #' require(Matrix)
 #' # require(dglm) # for fitting traditional dglms
@@ -21,7 +22,7 @@
 #' par(mfcol=c(1,1))
 #' # Generate Data
 #' N = 1e3
-#' x = z = Matrix(cbind(1, rnorm(N), rnorm(N), rnorm(N)))
+#' x = z = cbind(1, rnorm(N), rnorm(N), rnorm(N)) # Matrix()
 #' p = ncol(x)
 #' q = ncol(z)
 #' # Covariates
@@ -87,7 +88,6 @@
 #' # Check convergence
 #' plot_mcmc(mc$xi.mcmc, true =  xi.true, cnames= "xi")
 #' }
-
 ####################################
 #  Tweedie Compound Poisson Gamma  #
 #  Double Generalized Linear Model #
@@ -149,8 +149,16 @@ dglm.autograd <- function(y = NULL,
   res_gamma = matrix(0, nrow = niter, ncol = q)
   res_xi = rep(0, niter)
 
-  if(is.null(beta.init)) beta = rep(0, p) else beta = beta.init
-  if(is.null(gamma.init)) gamma = rep(0, q) else gamma = gamma.init
+  if(is.null(beta.init)){
+    beta = solve(crossprod(x, x)) %*% crossprod(x, log(y + 1e-3))
+  }else{
+    beta = beta.init
+  } # starting at MLE
+  if(is.null(gamma.init)){
+    gamma = solve(crossprod(z, z)) %*% crossprod(z, log(y + 1e-3))
+  }else{
+    gamma = gamma.init
+  } # starting at MLE
   xi = ifelse(is.null(xi.init), lower.xi + (upper.xi - lower.xi)/2, xi.init)
 
   # target density
@@ -171,7 +179,7 @@ dglm.autograd <- function(y = NULL,
     t1 = exp((2 - xi) * xb - zg)
     t2 = y * exp((1 - xi) * xb - zg)
 
-    A.beta.mat = forceSymmetric(crossprod(x * as.vector(t1), x) + (reg.factor + prec.beta) * diag(p))
+    A.beta.mat = crossprod(x * as.vector(t1), x) + (reg.factor + prec.beta) * diag(p) # forceSymmetric()
     A.beta.chol =  chol(A.beta.mat)
     A.beta = chol2inv(A.beta.chol)
     nabla.beta = - prec.beta * beta - crossprod(x, (t1 - t2))

@@ -17,7 +17,6 @@
 #' require(tweedie)
 #' require(mvtnorm)
 #' require(coda)
-#' require(MASS)
 #'
 #' # Generate Data
 #' N = 1e4
@@ -29,10 +28,10 @@
 #' sigma2.true = 1.5
 #' phis.true = 3
 #' Delta = as.matrix(dist(coords))
-#' Sigma = sigma2.true*exp(-phis.true * Delta)
-#' w.true = mvrnorm(1, rep(0,L), Sigma)
+#' Sigma = sigma2.true*exp(-phis.true*Delta)
+#' w.true = MASS::mvrnorm(1, rep(0,L), Sigma)
 #'
-#' if(N > L) index = sample(1:L, N, replace = TRUE) else if(N == L) index = sample(1:L, N, replace = FALSE)
+#' if(N > L) index = sample(1:L, N, replace = T) else if(N == L) index = sample(1:L, N, replace = F)
 #' # Design matrices
 #' z = x = cbind(1, rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N))
 #' x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
@@ -40,7 +39,6 @@
 #'
 #' p = ncol(x)
 #' q = ncol(z)
-#'
 #' # Covariates
 #' beta0 = 0.5
 #' beta1 = 1.5
@@ -84,19 +82,10 @@
 #' system.time(mc <- spdglm.autograd(coords = coords, y = y, x = x, z = z,
 #'                                   niter = niter, nburn = nburn, report = report, thin = 20,
 #'                                   index = index, lower.xi = lower.xi, upper.xi = upper.xi,
-#'                                   verbose = TRUE))
-#' # fixed effect model inference
-#' cbind(mc$model.fixed, true=round(c(beta.true,gamma.true,xi.true),3))
-#' # latent effect model inference
-#' cbind(mc$model.latent, true = c(sigma2.true,phis.true,round(w.true,3)))
-#' w.est = mc$model.latent[-c(1:2), "median"]
-#'
-#' # Check convergence
-#' plot_mcmc(samples = mc$xi.mcmc, true = xi.true, cnames = "xi")
-#' }
-
-
-
+#'                                   verbose = T))
+#' # Checks for convergence
+#' plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
+#'}
 ########################################################
 # Hierarchical Bayesian Tweedie Compound Poisson Gamma #
 #         Double Generalized Linear Model              #
@@ -196,12 +185,26 @@ spdglm.autograd <- function(coords = NULL,
   res_xi = res_sigma2 = res_phis = rep(0, niter)
 
 
-  if(is.null(beta.init)) beta = rep(0, p) else beta = beta.init
-  if(is.null(gamma.init)) gamma = rep(0, q) else gamma = gamma.init
-  if(is.null(w.init)) w = rep(0, L) else w = w.init
+  if(is.null(beta.init) | is.null(w.init)){
+    betaw.init = solve(rbind(cbind(crossprod(x, x),
+                                   t(apply(x, 2, function(s) aggregate(s, list(index), sum)[, 2]))),
+                             cbind(apply(x, 2, function(s) aggregate(s, list(index), sum)[, 2]),
+                                   diag(as.vector(table(index))))) + 1e-3 * diag(p + L)) %*%
+      matrix(c(crossprod(x,log(y + 1e-1)), aggregate(log(y + 1e-1), list(index), sum)[, 2]), ncol = 1)
+    beta = betaw.init[1 : p]
+    w = betaw.init[-(1 : p)]
+  }else{
+    beta = beta.init
+    w = w.init
+  } # starting at MLE
+  if(is.null(gamma.init)){
+    gamma = solve(crossprod(z, z)) %*% crossprod(z, log(y + 1e-3))
+  }else{
+    gamma = gamma.init
+  } # starting at MLE
   if(is.null(sigma2.init)) sigma2 = 5 else sigma2 = sigma2.init
   if(is.null(phis.init)) phis = 1 else phis = phis.init
-  xi = ifelse(is.null(xi.init), upper.xi - .2, xi.init)
+  xi = ifelse(is.null(xi.init), lower.xi + (upper.xi - lower.xi)/2, xi.init)
 
   # target density
   trgt_dfn = rep(0, niter)

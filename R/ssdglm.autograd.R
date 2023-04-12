@@ -13,69 +13,72 @@
 #' @export
 #' @examples
 #' \dontrun{
+#'
 #' # Generate Data
-#' require(tweedie)
 #' N = 1e3
 #' x = z = cbind(1, rnorm(N), rnorm(N), rnorm(N),
 #'               rnorm(N), rnorm(N), rnorm(N))
-#' # Standardize covariates
 #' x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
 #' z[,-1] = apply(z[,-1], 2, function(s) (s - mean(s))/sd(s))
 #' p = ncol(x)
 #' q = ncol(z)
-#' # Covariates
+#' # covariates
 #' beta0 = 1
 #' beta1 = 1.5
-#' beta2 = 0.01
+#' beta2 = 1e-4
 #' beta3 = 1.4
 #' beta4 = 1.1
-#' beta5 = 0.01
+#' beta5 = 1e-4
 #' beta6 = 2.5
 #' beta.true = c(beta0, beta1, beta2, beta3, beta4, beta5, beta6)
 #' mu_sim = exp(x %*% beta.true)
+#'
 #' gamma0 = 1
-#' gamma1 = 0.01
+#' gamma1 = 1e-4
 #' gamma2 = 1.5
 #' gamma3 = 1.1
-#' gamma4 = 0.01
+#' gamma4 = 1e-4
 #' gamma5 = -2.5
-#' gamma6 = 0.01
+#' gamma6 = 1e-4
 #' gamma.true = c(gamma0, gamma1, gamma2, gamma3, gamma4, gamma5, gamma6)
 #' phi_sim = exp(z %*% gamma.true)
-
+#'
 #' xi.true = 1.5
-
+#'
 #' y_sim = rtweedie(N, xi = xi.true, mu = mu_sim, phi = phi_sim)
 #' sum(y_sim == 0)/N # proportion of zeros
 #' var(y_sim)
 #'
-#' # Bayesian DGLM with Spike-Slab
+#' # # Traditional DGLM
+#' # mdglm = try(dglm(y_sim~x[,-1],~z[,-1],family=tweedie(link.power=0, var.power=1.5)))
+#' # if(class(mdglm) != "try-error") mdglm.mean = mdglm$coefficients # mean model
+#' # if(class(mdglm) != "try-error") mdglm.disp = mdglm$dispersion.fit$coefficients # dispersion model
+#'
+#' # Bayesian DGLM
 #' y = y_sim
 #' x = x
 #' z = z
-
-#' # Hyperparameters
+#'
+#' # hyperparameters
 #' lower.xi = 1
 #' upper.xi = 2
 #'
-#' system.time(mc <- ssdglm.autograd(y = y,
-#'  x = x,
-#'   z = z,
-#'    lower.xi = lower.xi,
-#'     upper.xi = upper.xi,
-#'      verbose = TRUE,
-#'       thin = 20))
-#' # Model summary
+#' niter = 3e4
+#' nburn = niter/2
+#' report = 1e2
+#'
+#' system.time(mc <- ssdglm.autograd(y = y, x = x, z = z, lower.xi = lower.xi, upper.xi = upper.xi, verbose = T,
+#'                                  niter = niter, nburn = nburn, report= report, thin = 50))#'
+#' # model summary
 #' cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
-#' # --mean model variance covariance matrix
+#' # mean model variance covariance matrix
 #' round(mc$mean.cov.model, 2)
-#' # --dispersion model variance covariance matrix
+#' # dispersion model variance covariance matrix
 #' round(mc$disp.cov.model, 2)
 #'
-#' # Check convergence
+#' # Checks for convergence
 #' plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
 #' }
-
 ###############################################################
 # Bayesian Variable Selection in DGLMs: Spike and Slab Priors #
 ###############################################################
@@ -97,7 +100,7 @@ ssdglm.autograd <- function(y = NULL,
                             rate.sigma2.gamma = NULL,
                             lower.xi = NULL,
                             upper.xi = NULL,
-                            nu0 = 5e-4,
+                            nu0 = 1e-4,
                             tau.beta = 1e-1,
                             tau.gamma = 1e-1,
                             tau.xi = 1e-1,
@@ -109,7 +112,7 @@ ssdglm.autograd <- function(y = NULL,
                             verbose = FALSE,
                             track = FALSE,
                             digits = 3,
-                            reg.factor = 20){
+                            reg.factor = 0){
   if(is.null(y)) stop(" Error: response missing! ")
   if(is.null(x) | is.null(z)) stop(" Error: either mean (x) or dispersion (z) (or both) design matrices missing! ")
   if(is.null(lower.xi) | is.null(upper.xi)) stop(" Error: specify prior for index parameter in Tweedie! ")
@@ -147,8 +150,16 @@ ssdglm.autograd <- function(y = NULL,
   rate.sigma2.gamma = ifelse(is.null(rate.sigma2.gamma), 1, rate.sigma2.gamma)
 
   # default initialization
-  if(is.null(beta.init)) beta = rep(0, p) else beta = beta.init
-  if(is.null(gamma.init)) gamma = rep(0, q) else gamma = gamma.init
+  if(is.null(beta.init)){
+    beta = solve(crossprod(x, x)) %*% crossprod(x, log(y + 1e-3))
+  }else{
+    beta = beta.init
+  } # starting at MLE
+  if(is.null(gamma.init)){
+    gamma = solve(crossprod(z, z)) %*% crossprod(z, log(y + 1e-3))
+  }else{
+    gamma = gamma.init
+  } # starting at MLE
   xi = ifelse(is.null(xi.init), lower.xi + (upper.xi - lower.xi)/2, xi.init)
   alpha.beta = ifelse(is.null(alpha.beta.init), 0.5, alpha.beta.init)
   alpha.gamma = ifelse(is.null(alpha.gamma.init), 0.5, alpha.gamma.init)
@@ -310,8 +321,8 @@ ssdglm.autograd <- function(y = NULL,
     lik.val = dtweedie(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
     lik.val[lik.val == 0] = 1e-300
     trgt_dfn[i] = sum(log(lik.val)) +
-      dmvnorm(as.vector(beta), rep(0, p), diag((sigma2.beta * zeta.beta)), log = TRUE) +
-      dmvnorm(as.vector(gamma), rep(0, q), diag((sigma2.gamma * zeta.gamma)), log = TRUE) + 0
+      mvtnorm::dmvnorm(as.vector(beta), rep(0, p), diag((sigma2.beta * zeta.beta)), log = T) +
+      mvtnorm::dmvnorm(as.vector(gamma), rep(0, q), diag((sigma2.gamma * zeta.gamma)), log = T) + 0
     if(track){
       if(i %% report == 0) cat(round(trgt_dfn[i], 2), "\n") else cat(round(trgt_dfn[i], 2), "\t")
     }
@@ -372,17 +383,17 @@ ssdglm.autograd <- function(y = NULL,
                               median = round(apply(res_beta[sample.win,], 2, median), digits = digits),
                               mean = round(apply(res_beta[sample.win,], 2, mean), digits = digits),
                               sd = round(apply(res_beta[sample.win,], 2, sd), digits = digits),
-                              round(HPDinterval(as.mcmc(res_beta[sample.win,])), digits = digits))
+                              round(coda::HPDinterval(coda::as.mcmc(res_beta[sample.win,])), digits = digits))
   gamma.est = cbind.data.frame(MAP = round(apply(res_gamma[sample.win,], 2, function(s){ den = density(s); ind = which.max(den$y); den$x[ind]}), digits = digits),
                                median = round(apply(res_gamma[sample.win,], 2, median), digits = digits),
                                mean = round(apply(res_gamma[sample.win,], 2, mean), digits = digits),
                                sd = round(apply(res_gamma[sample.win,], 2, sd), digits = digits),
-                               round(HPDinterval(as.mcmc(res_gamma[sample.win,])), digits = digits))
+                               round(coda::HPDinterval(coda::as.mcmc(res_gamma[sample.win,])), digits = digits))
   xi.est = cbind.data.frame(MAP = round(apply(matrix(res_xi[sample.win], ncol = 1), 2, function(s){ den = density(s); ind = which.max(den$y); den$x[ind]}), digits = digits),
                             median = round(median(res_xi[sample.win]), digits = digits),
                             mean = round(mean(res_xi[sample.win]), digits = digits),
                             sd = round(sd(res_xi[sample.win]), digits = digits),
-                            round(HPDinterval(as.mcmc(res_xi[sample.win])), digits = digits))
+                            round(coda::HPDinterval(coda::as.mcmc(res_xi[sample.win])), digits = digits))
   model.summary = rbind.data.frame(beta.est, gamma.est, xi.est)
   model.summary$sig = apply(model.summary, 1, function(x){
     if(x[5] > 0 | x[6] < 0) return("*")
@@ -408,15 +419,15 @@ ssdglm.autograd <- function(y = NULL,
                 niter = niter,
                 nburn = nburn,
                 report = report,
-                beta.mcmc = as.mcmc(res_beta[sample.win,]),
-                gamma.mcmc = as.mcmc(res_gamma[sample.win,]),
-                xi.mcmc = as.mcmc(res_xi[sample.win,"xi"]),
-                zeta.beta.mcmc = as.mcmc(res_zeta.beta[sample.win,]),
-                zeta.gamma.mcmc = as.mcmc(res_zeta.gamma[sample.win,]),
-                sigma2.beta.mcmc = as.mcmc(res_sigma2.beta[sample.win,]),
-                sigma2.gamma.mcmc = as.mcmc(res_sigma2.gamma[sample.win,]),
-                alpha.beta.mcmc = as.mcmc(res_alpha.beta[sample.win,"alpha.beta"]),
-                alpha.gamma.mcmc = as.mcmc(res_alpha.gamma[sample.win,"alpha.gamma"])))
+                beta.mcmc = coda::as.mcmc(res_beta[sample.win,]),
+                gamma.mcmc = coda::as.mcmc(res_gamma[sample.win,]),
+                xi.mcmc = coda::as.mcmc(res_xi[sample.win,"xi"]),
+                zeta.beta.mcmc = coda::as.mcmc(res_zeta.beta[sample.win,]),
+                zeta.gamma.mcmc = coda::as.mcmc(res_zeta.gamma[sample.win,]),
+                sigma2.beta.mcmc = coda::as.mcmc(res_sigma2.beta[sample.win,]),
+                sigma2.gamma.mcmc = coda::as.mcmc(res_sigma2.gamma[sample.win,]),
+                alpha.beta.mcmc = coda::as.mcmc(res_alpha.beta[sample.win,"alpha.beta"]),
+                alpha.gamma.mcmc = coda::as.mcmc(res_alpha.gamma[sample.win,"alpha.gamma"])))
   }else{
     colnames(A.beta.mat) = rownames(A.beta.mat) =  paste("beta", 0 : (p - 1), sep="")
     colnames(A.gamma.mat) = rownames(A.gamma.mat) = paste("gamma", 0 : (q - 1), sep="")

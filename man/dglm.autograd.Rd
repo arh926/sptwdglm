@@ -2,7 +2,7 @@
 % Please edit documentation in R/dglm.autograd.R
 \name{dglm.autograd}
 \alias{dglm.autograd}
-\title{Fitting Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models}
+\title{Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Models}
 \usage{
 dglm.autograd(
   y = NULL,
@@ -45,6 +45,7 @@ Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\
 }
 \examples{
 \dontrun{
+set.seed(2022)
 require(tweedie)
 require(Matrix)
 # require(dglm) # for fitting traditional dglms
@@ -53,7 +54,7 @@ require(Matrix)
 par(mfcol=c(1,1))
 # Generate Data
 N = 1e3
-x = z = Matrix(cbind(1, rnorm(N), rnorm(N), rnorm(N)))
+x = z = cbind(1, rnorm(N), rnorm(N), rnorm(N)) # Matrix()
 p = ncol(x)
 q = ncol(z)
 # Covariates

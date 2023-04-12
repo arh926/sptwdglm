@@ -23,7 +23,7 @@ ssdglm.autograd(
   rate.sigma2.gamma = NULL,
   lower.xi = NULL,
   upper.xi = NULL,
-  nu0 = 5e-04,
+  nu0 = 1e-04,
   tau.beta = 0.1,
   tau.gamma = 0.1,
   tau.xi = 0.1,
@@ -35,7 +35,7 @@ ssdglm.autograd(
   verbose = FALSE,
   track = FALSE,
   digits = 3,
-  reg.factor = 20
+  reg.factor = 0
 )
 }
 \arguments{
@@ -54,63 +54,70 @@ Performs variable selection on Double Generalized Linear Model: \eqn{\log(\mu)=x
 }
 \examples{
 \dontrun{
+
 # Generate Data
-require(tweedie)
 N = 1e3
 x = z = cbind(1, rnorm(N), rnorm(N), rnorm(N),
               rnorm(N), rnorm(N), rnorm(N))
-# Standardize covariates
 x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
 z[,-1] = apply(z[,-1], 2, function(s) (s - mean(s))/sd(s))
 p = ncol(x)
 q = ncol(z)
-# Covariates
+# covariates
 beta0 = 1
 beta1 = 1.5
-beta2 = 0.01
+beta2 = 1e-4
 beta3 = 1.4
 beta4 = 1.1
-beta5 = 0.01
+beta5 = 1e-4
 beta6 = 2.5
 beta.true = c(beta0, beta1, beta2, beta3, beta4, beta5, beta6)
 mu_sim = exp(x \%*\% beta.true)
+
 gamma0 = 1
-gamma1 = 0.01
+gamma1 = 1e-4
 gamma2 = 1.5
 gamma3 = 1.1
-gamma4 = 0.01
+gamma4 = 1e-4
 gamma5 = -2.5
-gamma6 = 0.01
+gamma6 = 1e-4
 gamma.true = c(gamma0, gamma1, gamma2, gamma3, gamma4, gamma5, gamma6)
 phi_sim = exp(z \%*\% gamma.true)
+
 xi.true = 1.5
+
 y_sim = rtweedie(N, xi = xi.true, mu = mu_sim, phi = phi_sim)
 sum(y_sim == 0)/N # proportion of zeros
 var(y_sim)
 
-# Bayesian DGLM with Spike-Slab
+# # Traditional DGLM
+# mdglm = try(dglm(y_sim~x[,-1],~z[,-1],family=tweedie(link.power=0, var.power=1.5)))
+# if(class(mdglm) != "try-error") mdglm.mean = mdglm$coefficients # mean model
+# if(class(mdglm) != "try-error") mdglm.disp = mdglm$dispersion.fit$coefficients # dispersion model
+
+# Bayesian DGLM
 y = y_sim
 x = x
 z = z
-# Hyperparameters
+
+# hyperparameters
 lower.xi = 1
 upper.xi = 2
 
-system.time(mc <- ssdglm.autograd(y = y,
- x = x,
-  z = z,
-   lower.xi = lower.xi,
-    upper.xi = upper.xi,
-     verbose = TRUE,
-      thin = 20))
-# Model summary
+niter = 3e4
+nburn = niter/2
+report = 1e2
+
+system.time(mc <- ssdglm.autograd(y = y, x = x, z = z, lower.xi = lower.xi, upper.xi = upper.xi, verbose = T,
+                                 niter = niter, nburn = nburn, report= report, thin = 50))#'
+# model summary
 cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
-# --mean model variance covariance matrix
+# mean model variance covariance matrix
 round(mc$mean.cov.model, 2)
-# --dispersion model variance covariance matrix
+# dispersion model variance covariance matrix
 round(mc$disp.cov.model, 2)
 
-# Check convergence
+# Checks for convergence
 plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
 }
 }
