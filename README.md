@@ -101,7 +101,7 @@ lower.xi = 1
 upper.xi = 2
 
 system.time(mc_ss <- spssdglm.autograd(coords = coords, y = y, x = x, z = z,
-                                    niter = niter, nburn= nburn, report = report, thin = 20,
+                                    niter = niter, nburn= nburn, report = report, thin = 50,
                                     index = index, lower.xi = lower.xi, upper.xi = upper.xi,
                                     verbose = TRUE))
 # Check for convergence
