@@ -13,7 +13,6 @@
 #' @importFrom mvtnorm dmvnorm
 #' @export
 #' @examples
-#' \dontrun{
 #' require(tweedie)
 #' require(mvtnorm)
 #' require(coda)
@@ -29,9 +28,13 @@
 #' phis.true = 3
 #' Delta = as.matrix(dist(coords))
 #' Sigma = sigma2.true*exp(-phis.true*Delta)
-#' w.true = MASS::mvrnorm(1, rep(0,L), Sigma)
+#' w.true = crossprod(chol(Sigma), rnorm(L))
 #'
-#' if(N > L) index = sample(1:L, N, replace = T) else if(N == L) index = sample(1:L, N, replace = F)
+#' if(N > L){
+#' index = sample(1:L, N, replace = TRUE)
+#' }else if(N == L){
+#' index = sample(1:L, N, replace = FALSE)
+#' }
 #' # Design matrices
 #' z = x = cbind(1, rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N))
 #' x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
@@ -82,10 +85,9 @@
 #' system.time(mc <- spdglm.autograd(coords = coords, y = y, x = x, z = z,
 #'                                   niter = niter, nburn = nburn, report = report, thin = 20,
 #'                                   index = index, lower.xi = lower.xi, upper.xi = upper.xi,
-#'                                   verbose = T))
+#'                                   verbose = TRUE))
 #' # Checks for convergence
 #' plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
-#'}
 ########################################################
 # Hierarchical Bayesian Tweedie Compound Poisson Gamma #
 #         Double Generalized Linear Model              #
@@ -189,8 +191,8 @@ spdglm.autograd <- function(coords = NULL,
     betaw.init = solve(rbind(cbind(crossprod(x, x),
                                    t(apply(x, 2, function(s) aggregate(s, list(index), sum)[, 2]))),
                              cbind(apply(x, 2, function(s) aggregate(s, list(index), sum)[, 2]),
-                                   diag(as.vector(table(index))))) + 1e-3 * diag(p + L)) %*%
-      matrix(c(crossprod(x,log(y + 1e-1)), aggregate(log(y + 1e-1), list(index), sum)[, 2]), ncol = 1)
+                                   diag(as.vector(table(index))))) + 1e-2 * diag(p + L)) %*%
+      matrix(c(crossprod(x,log(y + 1e-2)), aggregate(log(y + 1e-2), list(index), sum)[, 2]), ncol = 1)
     beta = betaw.init[1 : p]
     w = betaw.init[-(1 : p)]
   }else{
@@ -198,7 +200,7 @@ spdglm.autograd <- function(coords = NULL,
     w = w.init
   } # starting at MLE
   if(is.null(gamma.init)){
-    gamma = solve(crossprod(z, z)) %*% crossprod(z, log(y + 1e-3))
+    gamma = solve(crossprod(z, z)) %*% crossprod(z, log(y + 1e-2))
   }else{
     gamma = gamma.init
   } # starting at MLE

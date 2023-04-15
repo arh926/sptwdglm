@@ -12,12 +12,9 @@
 #' @importFrom mvtnorm dmvnorm
 #' @export
 #' @examples
-#' \dontrun{
-#' set.seed(2022)
 #' require(tweedie)
-#' require(Matrix)
-#' # require(dglm) # for fitting traditional dglms
-#' # require(statmod)
+#' require(mvtnorm)
+#' require(coda)
 #'
 #' par(mfcol=c(1,1))
 #' # Generate Data
@@ -87,7 +84,6 @@
 #'
 #' # Check convergence
 #' plot_mcmc(mc$xi.mcmc, true =  xi.true, cnames= "xi")
-#' }
 ####################################
 #  Tweedie Compound Poisson Gamma  #
 #  Double Generalized Linear Model #

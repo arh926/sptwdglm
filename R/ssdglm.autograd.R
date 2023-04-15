@@ -12,7 +12,9 @@
 #' @importFrom mvtnorm dmvnorm
 #' @export
 #' @examples
-#' \dontrun{
+#' require(tweedie)
+#' require(mvtnorm)
+#' require(coda)
 #'
 #' # Generate Data
 #' N = 1e3
@@ -63,12 +65,14 @@
 #' lower.xi = 1
 #' upper.xi = 2
 #'
-#' niter = 3e4
+#' niter = 1e4
 #' nburn = niter/2
 #' report = 1e2
 #'
-#' system.time(mc <- ssdglm.autograd(y = y, x = x, z = z, lower.xi = lower.xi, upper.xi = upper.xi, verbose = T,
-#'                                  niter = niter, nburn = nburn, report= report, thin = 50))#'
+#' system.time(mc <- ssdglm.autograd(y = y, x = x, z = z,
+#'  lower.xi = lower.xi, upper.xi = upper.xi, verbose = TRUE,
+#'                                  niter = niter, nburn = nburn,
+#'                                   report= report, thin = 50))
 #' # model summary
 #' cbind(mc$model, true=c(beta.true,gamma.true,xi.true))
 #' # mean model variance covariance matrix
@@ -78,7 +82,6 @@
 #'
 #' # Checks for convergence
 #' plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
-#' }
 ###############################################################
 # Bayesian Variable Selection in DGLMs: Spike and Slab Priors #
 ###############################################################

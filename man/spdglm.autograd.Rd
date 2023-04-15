@@ -57,7 +57,6 @@ spdglm.autograd(
 
 }
 \examples{
-\dontrun{
 require(tweedie)
 require(mvtnorm)
 require(coda)
@@ -73,9 +72,13 @@ sigma2.true = 1.5
 phis.true = 3
 Delta = as.matrix(dist(coords))
 Sigma = sigma2.true*exp(-phis.true*Delta)
-w.true = MASS::mvrnorm(1, rep(0,L), Sigma)
+w.true = crossprod(chol(Sigma), rnorm(L))
 
-if(N > L) index = sample(1:L, N, replace = T) else if(N == L) index = sample(1:L, N, replace = F)
+if(N > L){
+index = sample(1:L, N, replace = TRUE)
+}else if(N == L){
+index = sample(1:L, N, replace = FALSE)
+}
 # Design matrices
 z = x = cbind(1, rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N))
 x[,-1] = apply(x[,-1], 2, function(s) (s - mean(s))/sd(s))
@@ -126,8 +129,7 @@ upper.xi = 2
 system.time(mc <- spdglm.autograd(coords = coords, y = y, x = x, z = z,
                                   niter = niter, nburn = nburn, report = report, thin = 20,
                                   index = index, lower.xi = lower.xi, upper.xi = upper.xi,
-                                  verbose = T))
+                                  verbose = TRUE))
 # Checks for convergence
 plot_mcmc(mc$xi.mcmc, true = xi.true, cnames = "xi")
-}
 }

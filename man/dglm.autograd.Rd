@@ -44,12 +44,9 @@ dglm.autograd(
 Fits a Double Generalized Linear Model: \eqn{\log(\mu)=x^T\beta} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 }
 \examples{
-\dontrun{
-set.seed(2022)
 require(tweedie)
-require(Matrix)
-# require(dglm) # for fitting traditional dglms
-# require(statmod)
+require(mvtnorm)
+require(coda)
 
 par(mfcol=c(1,1))
 # Generate Data
@@ -119,5 +116,4 @@ mc$disp.cov.model
 
 # Check convergence
 plot_mcmc(mc$xi.mcmc, true =  xi.true, cnames= "xi")
-}
 }

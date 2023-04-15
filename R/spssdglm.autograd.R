@@ -13,10 +13,9 @@
 #' @importFrom mvtnorm dmvnorm
 #' @export
 #' @examples
-#' \dontrun{
 #' require(tweedie)
 #' require(mvtnorm)
-#' require(MASS)
+#' require(coda)
 #'
 #' # Generate Data
 #' N = 1e4
@@ -29,9 +28,13 @@
 #' phis.true = 3
 #' Delta = as.matrix(dist(coords))
 #' Sigma = sigma2.true*exp(-phis.true*Delta)
-#' w.true = mvrnorm(1, rep(0, L), Sigma)
+#' w.true = crossprod(chol(Sigma), rnorm(L))
 #'
-#' if(N > L) index = sample(1:L, N, replace = TRUE) else if(N == L) index = sample(1:L, N, replace = FALSE)
+#' if(N > L){
+#' index = sample(1:L, N, replace = TRUE)
+#' }else if(N == L){
+#' index = sample(1:L, N, replace = FALSE)
+#' }
 #'
 #' # Design matrices
 #' z = x = cbind(1, rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N), rnorm(N))
@@ -72,7 +75,7 @@
 #' x = x
 #' z = z
 #' # mcmc parameters
-#' niter = 3e4
+#' niter = 1e4
 #' nburn = niter/2
 #' report = 1e2
 #'
@@ -85,7 +88,6 @@
 #'                                     verbose = TRUE))
 #' # Check for convergence
 #' plot_mcmc(samples = mc_ss$xi.mcmc, true = 1.5, col = "blue", cnames = "xi")
-#' }
 ##############################################################
 # Hierarchical Bayesian Tweedie Compound Poisson Gamma       #
 # Double Generalized Linear Model with Spike and Slab Priors #
