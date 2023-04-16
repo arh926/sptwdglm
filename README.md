@@ -14,6 +14,8 @@ Function   | Models
 `spdglm.autograd.R`    | Spatial DGLMs
 `spssdglm.autograd.R`    | Spike and Slab Priors for Spatial DGLMs
 
+Variable selection is performed using the function `FDR.R` on the model coefficients.
+
 ## Installation
 
 You can install the development version of `sptwdglm` like so:
@@ -31,10 +33,10 @@ There are examples contained within every function. Please install the package t
 ``` r
 require(sptwdglm)
 
-mc <- spssdglm.autograd(coordinates, repsponse, mean covariates, dispersion covariates, mcmc parameters)
+mc <- Function(coordinates, repsponse, mean covariates, dispersion covariates, mcmc parameters)
 
 # Variable selection through FDR for coefficients
-rbeta.ssdglm = FDR(mc$beta.mcmc)
-rgamma.ssdglm = FDR(mc$gamma.mcmc)
+FDR(mean coefficients)
+FDR(dispersion coefficients)
 ```
 
