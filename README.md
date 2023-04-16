@@ -31,7 +31,7 @@ There are examples contained within every function. Please install the package t
 ``` r
 require(sptwdglm)
 
-mc_ss <- spssdglm.autograd(coordinates, repsponse, mean covariates, dispersion covariates, mcmc parameters)
+mc <- spssdglm.autograd(coordinates, repsponse, mean covariates, dispersion covariates, mcmc parameters)
 
 # Variable selection through FDR for coefficients
 rbeta.ssdglm = FDR(mc$beta.mcmc)
