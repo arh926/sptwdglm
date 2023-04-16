@@ -303,18 +303,21 @@ spssdglm.autograd <- function(coords = NULL,
       ra1 = sum(dev.tw(y = y, mu = exp(xb.draw), phi = exp(zg), xi = xi)) - sum(dev.tw(y = y, mu = exp(xb), phi = exp(zg), xi = xi))
       ra2 = 0.5 * (sum(c(beta0.draw, beta.n0.draw)^2/(sigma2.beta * zeta.beta)) - sum(beta^2/(sigma2.beta * zeta.beta))) + 0.5 * (crossprod(t(crossprod(w.draw, R.inv)), w.draw) - crossprod(t(crossprod(w, R.inv)), w))/sigma2
       ra = ra1 - ra2
+      if(is.nan(ra)) ra = -Inf # error checks
 
       rb1.1 = matrix(c(beta.n0.draw, w.draw), ncol= 1) - matrix(c(beta[-1], w), ncol = 1) - tau.beta * A.beta %*% nabla.beta/2
       rb1 = -1/(2 * tau.beta) * crossprod(t(crossprod(rb1.1, A.beta.mat)), (rb1.1))
       rb2.1 = matrix(c(beta[-1], w), ncol = 1) - matrix(c(beta.n0.draw, w.draw), ncol= 1) - tau.beta * A.beta %*% nabla.beta.draw/2
       rb2 = -1/(2 * tau.beta) * crossprod(t(crossprod(rb2.1, A.beta.mat)), (rb2.1))
       rb = rb2 - rb1
+      if(is.nan(rb)) rb = -Inf # error checks
 
       rc1.1 = beta0.draw - beta[1] - tau.beta * A.beta0 * nabla.beta0/2
       rc1 = - rc1.1^2/(2 * tau.beta * A.beta0)
       rc2.1 = beta[1] - beta0.draw - tau.beta * A.beta0 * nabla.beta0.draw/2
       rc2 = - rc2.1^2/(2 * tau.beta * A.beta0)
       rc = rc2 - rc1
+      if(is.nan(rc)) rc = -Inf # error checks
 
       accept.prob = min(ra + rb + rc, 0)
       if(log(runif(1)) < accept.prob){
@@ -363,12 +366,14 @@ spssdglm.autograd <- function(coords = NULL,
       ra1 = sum(dev.tw(y = y, mu = exp(xb.draw), phi = exp(zg), xi = xi)) - sum(dev.tw(y = y, mu = exp(xb), phi = exp(zg), xi = xi))
       ra2 = 0.5 * (sum(beta.draw^2/(sigma2.beta * zeta.beta)) - sum(beta^2/(sigma2.beta * zeta.beta))) + 0.5 * (crossprod(t(crossprod(w.draw, R.inv)), w.draw) - crossprod(t(crossprod(w, R.inv)), w))/sigma2
       ra = ra1 - ra2
+      if(is.nan(ra)) ra = -Inf # error checks
 
       rb1.1 = betaw.draw - matrix(c(beta, w), ncol = 1) - tau.beta * A.beta %*% nabla.beta/2
       rb1 = -1/(2 * tau.beta) * crossprod(t(crossprod(rb1.1, A.beta.mat)), (rb1.1))
       rb2.1 = matrix(c(beta, w), ncol = 1) - betaw.draw - tau.beta * A.beta %*% nabla.beta.draw/2
       rb2 = -1/(2 * tau.beta) * crossprod(t(crossprod(rb2.1, A.beta.mat)), (rb2.1))
       rb = rb2 - rb1
+      if(is.nan(rb)) rb = -Inf # error checks
 
       accept.prob = min(as.numeric(ra + rb), 0)
       if(log(runif(1)) < accept.prob){
@@ -421,11 +426,14 @@ spssdglm.autograd <- function(coords = NULL,
     ra1 = sum(log(ra1.tmp1/ra1.tmp2))
     ra2 = 0.5 * (sum(gamma.draw^2/(sigma2.gamma * zeta.gamma)) - sum(gamma^2/(sigma2.gamma * zeta.gamma)))
     ra = ra1 - ra2
+    if(is.nan(ra)) ra = -Inf # error checks
+
     rb1.1 = gamma.draw - gamma - tau.gamma * A.gamma %*% nabla.gamma/2
     rb1 = -1/(2 * tau.gamma) * crossprod(t(crossprod(rb1.1, A.gamma.mat)), (rb1.1))
     rb2.1 = gamma - gamma.draw - tau.gamma * A.gamma %*% nabla.gamma.draw/2
     rb2 = -1/(2 * tau.gamma) * crossprod(t(crossprod(rb2.1, A.gamma.mat)), (rb2.1))
     rb = rb2 - rb1
+    if(is.nan(rb)) rb = -Inf # error checks
 
     accept.prob = min(ra + rb, 0)
     if(log(runif(1)) < accept.prob){
