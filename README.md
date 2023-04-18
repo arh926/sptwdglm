@@ -14,7 +14,7 @@ Function   | Models
 `spdglm.autograd.R`    | Spatial DGLMs
 `spssdglm.autograd.R`    | Spike and Slab Priors for Spatial DGLMs
 
-Variable selection is performed using the function `FDR.R` on the model coefficients.
+All samplers use Metropolis Adjusted Langevin Algorithm (MALA, see Girolami and Calderhead, 2011 \url{https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2010.00765.x}). Variable selection is performed using the function `FDR.R` on the model coefficients.
 
 ## Installation
 
