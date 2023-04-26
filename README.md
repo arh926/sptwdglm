@@ -19,7 +19,7 @@ All of the above MCMC samplers use a Metropolis Adjusted Langevin Algorithm (MAL
 <p align="center">
   <img width="650" height="500" src="https://user-images.githubusercontent.com/73150479/234196908-ea672b3c-9ceb-4472-9d43-1e865d59738d.jpg">
 <p>
-Figure showing spatial patterns on the left column and logarithm of aggregated Tweedie response on the right column for 100 locations.
+Figure showing spatial patterns on the left column and logarithm of aggregated Tweedie response on the right column for 10,000 realizations across 100 locations.
 
 ## Installation
 
