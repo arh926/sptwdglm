@@ -54,7 +54,7 @@ spdglm.autograd(
 \item{upper.xi}{upper bound for the index parameter, \eqn{\xi}}
 }
 \description{
-
+Fits a Double Generalized Linear Model: \eqn{\log(\mu(s))=x(s)^T\beta+f(s)^T w(s)} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 }
 \examples{
 require(tweedie)

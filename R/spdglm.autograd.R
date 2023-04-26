@@ -1,6 +1,6 @@
 #' Tweedie Compound Poisson-Gamma (CP-g) Double Generalized Linear Spatial Process Models
 #'
-#' Fits a Double Generalized Linear Model: \eqn{\log(\mu({\bf s}))=x(\{\bf s})^T\beta+f({\bf s})}^Tw({\bf s}) and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
+#' Fits a Double Generalized Linear Model: \eqn{\log(\mu(s))=x(s)^T\beta+f(s)^T w(s)} and \eqn{\log(\phi)=z^T\gamma}. Parameters not listed below are optional.
 #'
 #' @param coords coordinates for observed process (ex. latitude-longitude)
 #' @param y observed response
