@@ -14,11 +14,17 @@ Function   | Models
 `spdglm.autograd.R`    | Spatial DGLMs
 `spssdglm.autograd.R`    | Spike and Slab Priors for Spatial DGLMs
 
-All of the above MCMC samplers use a Metropolis Adjusted Langevin Algorithm (MALA, see Girolami and Calderhead, 2011 https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2010.00765.x). Variable selection is performed using the function `FDR.R` on the model coefficients.
+All of the above MCMC samplers use a Metropolis Adjusted Langevin Algorithm (MALA, see Girolami and Calderhead, 2011 https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2010.00765.x). Variable selection is performed using the function `FDR.R` on the model coefficients. 
+
+<p align="center">
+  <img width="650" height="500" src="https://user-images.githubusercontent.com/73150479/234196908-ea672b3c-9ceb-4472-9d43-1e865d59738d.jpg">
+<p>
+Figure showing spatial patterns on the left column and logarithm of aggregated Tweedie response on the right column for 100 locations.
 
 ## Installation
 
 You can install the development version of `sptwdglm` like so:
+
 
 ``` r
 # if you dont have devtools installed
