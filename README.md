@@ -43,6 +43,9 @@ require(sptwdglm)
 
 mc <- Function(coordinates, repsponse, mean covariates, dispersion covariates, mcmc parameters)
 
+# Diagnostics
+plot_mcmc(posterior samples)
+
 # Variable selection through FDR for coefficients
 FDR(mean coefficients)
 FDR(dispersion coefficients)
