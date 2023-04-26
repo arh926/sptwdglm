@@ -41,7 +41,10 @@ There are examples contained within every function. Please install the package t
 ``` r
 require(sptwdglm)
 
-mc <- Function(coordinates, repsponse, mean covariates, dispersion covariates, mcmc parameters)
+# non-spatial
+mc <- Function(response, mean covariates, dispersion covariates, mcmc parameters)
+# spatial
+mc <- Function(coordinates, response, mean covariates, dispersion covariates, mcmc parameters)
 
 # Diagnostics
 plot_mcmc(posterior samples)
