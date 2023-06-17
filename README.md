@@ -16,7 +16,7 @@ Function   | Models
 
  Variable selection is performed using the function `FDR.R` on the model coefficients. 
  
-It supplements the paper titled, "Bayesian Variable Selection in Double Generalized Linear Tweedie Spatial Process Models", New England Journal of Statistics in Data Science: Special Issue on Modern Bayesian Methods with Applications in Data Science (Just accepted). 
+It supplements the paper titled, "Bayesian Variable Selection in Double Generalized Linear Tweedie Spatial Process Models", New England Journal of Statistics in Data Science: Special Issue on Modern Bayesian Methods with Applications in Data Science (https://doi.org/10.51387/23-NEJSDS37). 
 
 All of the above MCMC samplers use a Metropolis Adjusted Langevin Algorithm (MALA, see Girolami and Calderhead, 2011 https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2010.00765.x).
 
