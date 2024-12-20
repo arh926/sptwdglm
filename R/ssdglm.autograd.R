@@ -85,6 +85,7 @@
 ###############################################################
 # Bayesian Variable Selection in DGLMs: Spike and Slab Priors #
 ###############################################################
+# Comment for Aditya & Alokesh: Alternative is argument for main function: mean.glm.only = TRUE/FALSE
 ssdglm.autograd <- function(y = NULL,
                             x = NULL,
                             z = NULL,
@@ -118,6 +119,7 @@ ssdglm.autograd <- function(y = NULL,
                             reg.factor = 0){
   if(is.null(y)) stop(" Error: response missing! ")
   if(is.null(x) | is.null(z)) stop(" Error: either mean (x) or dispersion (z) (or both) design matrices missing! ")
+  # Comment: if(is.null(z) & !is.null(x)) z = x
   if(is.null(lower.xi) | is.null(upper.xi)) stop(" Error: specify prior for index parameter in Tweedie! ")
   if(is.null(niter)){
     warning(" Warning: chain length not specified, setting defaults to length = 1e4, burnin = 5e3, report = 1e2. ")
@@ -246,6 +248,7 @@ ssdglm.autograd <- function(y = NULL,
     ################
     # update gamma #
     ################
+    # Comment for Aditya & Alokesh (Travelers): if(mean.glm.only){z = matrix(1, ncol = 1, nrow = nrow(x)); # remember gamma will be a scalar}
     dldphi = delphi(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
     nabla.gamma = - gamma/(sigma2.gamma * zeta.gamma) + crossprod(z, exp(zg) * dldphi)
 
@@ -281,6 +284,7 @@ ssdglm.autograd <- function(y = NULL,
     ###############################
     # update spike-slab for gamma #
     ###############################
+    # Comment for Aditya & Alokesh: if(!mean.glm.only){}
     # update zeta.gamma
     tmp = exp(- 0.5 * gamma^2/sigma2.gamma)
     t1 = (1 - alpha.gamma) * 1/sqrt(nu0) * tmp^(1/nu0)
