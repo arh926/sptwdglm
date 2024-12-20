@@ -248,7 +248,7 @@ ssdglm.autograd <- function(y = NULL,
     ################
     # update gamma #
     ################
-    # Comment for Aditya & Alokesh (Travelers): if(mean.glm.only){z = matrix(1, ncol = 1, nrow = nrow(x)); # remember gamma will be a scalar}
+    # Comment for Aditya & Alokesh (Travelers): if(mean.glm.only){z = matrix(1, ncol = 1, nrow = nrow(x)); # remember gamma will be a scalar}else{}
     dldphi = delphi(y = y, xi = xi, mu = exp(xb), phi = exp(zg))
     nabla.gamma = - gamma/(sigma2.gamma * zeta.gamma) + crossprod(z, exp(zg) * dldphi)
 
